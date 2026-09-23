@@ -39,7 +39,9 @@ jobs:
           pip install -e .
 
       - name: Import check
-        run: python -c "import laya; print(laya.__version__); print(sorted(laya.__all__))"
+        run: |
+          python -c "import laya; print(laya.__version__); print(sorted(laya.__all__))"
+          python -c "import bio_laya; print(sorted(bio_laya.__all__))"
 
       - name: Routing and language-detection tests
         run: |
@@ -53,6 +55,9 @@ jobs:
       - name: Email cleaning tests
         run: python tests/test_email.py
 
+      - name: BIO-Laya shadow adapter tests
+        run: python tests/test_bio_laya.py
+
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -63,9 +68,9 @@ jobs:
           python-version: "3.11"
       - run: pip install ruff
       - name: Ruff
-        run: ruff check laya/ --select=E9,F63,F7,F82,F401,F811 --line-length=120
+        run: ruff check laya/ bio_laya/ --select=E9,F63,F7,F82,F401,F811 --line-length=120
       - name: Byte-compile every module
-        run: python -m compileall -q laya/ tests/
+        run: python -m compileall -q laya/ bio_laya/ tests/
 
   build:
     name: package
