@@ -1,4 +1,4 @@
-import pytest
+import unittest
 
 from bio_laya import (
     BioLayaAdapter,
@@ -52,41 +52,47 @@ class FakeAgent:
         }
 
 
-def test_adapter_preserves_baseline_order_without_mutating_input():
-    req = request()
-    batch = BioLayaAdapter(max_candidates=3).build(req)
-    assert batch.candidate_ids == ("m1", "m2", "m3")
-    assert tuple(item.memory_id for item in req.candidates) == ("m2", "m1", "m3")
-
-
-def test_adapter_caps_shortlist():
-    batch = BioLayaAdapter(max_candidates=2).build(request())
-    assert batch.candidate_ids == ("m1", "m2")
-    assert set(batch.questions["best_memory"]["criteria"]) == {"m1", "m2", "__none__"}
-
-
-def test_shadow_judge_only_proposes_change():
-    decision = BioLayaShadowJudge(FakeAgent("m2")).evaluate(request())
-    assert decision.baseline_memory_id == "m1"
-    assert decision.proposed_memory_id == "m2"
-    assert decision.changed is True
-    assert decision.query_type == "temporal_update"
-
-
-def test_shadow_comparison_win_loss_states():
-    decision = BioLayaShadowJudge(FakeAgent("m2")).evaluate(request())
-    assert compare_with_gold(decision, "m2").outcome == "win"
-    assert compare_with_gold(decision, "m1").outcome == "loss"
-
-
-def test_duplicate_candidate_ids_rejected():
-    with pytest.raises(ValueError):
-        MemoryQuery(
-            query="q",
-            candidates=(candidate("same", 1), candidate("same", 2)),
+class BioLayaTests(unittest.TestCase):
+    def test_adapter_preserves_baseline_order_without_mutating_input(self):
+        req = request()
+        batch = BioLayaAdapter(max_candidates=3).build(req)
+        self.assertEqual(batch.candidate_ids, ("m1", "m2", "m3"))
+        self.assertEqual(
+            tuple(item.memory_id for item in req.candidates),
+            ("m2", "m1", "m3"),
         )
 
+    def test_adapter_caps_shortlist(self):
+        batch = BioLayaAdapter(max_candidates=2).build(request())
+        self.assertEqual(batch.candidate_ids, ("m1", "m2"))
+        self.assertEqual(
+            set(batch.questions["best_memory"]["criteria"]),
+            {"m1", "m2", "__none__"},
+        )
 
-def test_adapter_rejects_oversized_config():
-    with pytest.raises(ValueError):
-        BioLayaAdapter(max_candidates=21)
+    def test_shadow_judge_only_proposes_change(self):
+        decision = BioLayaShadowJudge(FakeAgent("m2")).evaluate(request())
+        self.assertEqual(decision.baseline_memory_id, "m1")
+        self.assertEqual(decision.proposed_memory_id, "m2")
+        self.assertTrue(decision.changed)
+        self.assertEqual(decision.query_type, "temporal_update")
+
+    def test_shadow_comparison_win_loss_states(self):
+        decision = BioLayaShadowJudge(FakeAgent("m2")).evaluate(request())
+        self.assertEqual(compare_with_gold(decision, "m2").outcome, "win")
+        self.assertEqual(compare_with_gold(decision, "m1").outcome, "loss")
+
+    def test_duplicate_candidate_ids_rejected(self):
+        with self.assertRaises(ValueError):
+            MemoryQuery(
+                query="q",
+                candidates=(candidate("same", 1), candidate("same", 2)),
+            )
+
+    def test_adapter_rejects_oversized_config(self):
+        with self.assertRaises(ValueError):
+            BioLayaAdapter(max_candidates=21)
+
+
+if __name__ == "__main__":
+    unittest.main()
