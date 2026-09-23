@@ -9,10 +9,10 @@
 - [x] shadow-only judge
 - [x] win/loss comparison helper
 - [x] synthetic unit tests
-- [ ] CI confirmation on fork
+- [x] GitHub CI disabled; verification is local-only
 - [ ] benchmark row import/export format
 
-Gate: no memory-store write path exists and upstream Laya tests remain green.
+Gate: no memory-store write path exists. All verification is run locally; GitHub Actions must not be used for test execution.
 
 ## v0.2 — Dataset contract
 
