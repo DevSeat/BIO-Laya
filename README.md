@@ -446,3 +446,40 @@ If Laya helps your research or products, consider supporting independent researc
 ## License
 
 Apache 2.0. Developed by Convai Innovations.
+
+
+---
+
+## DevSeat Context Optimizer (Optional)
+
+The DevSeat fork can wrap an existing `Router` with the shared
+`devseat-cognitive-guard` context middleware. This is optional and does not
+add a hard dependency to Laya.
+
+Install the context optimizer from the DevSeat checkout, then:
+
+```python
+from laya import Router, with_context_optimizer
+
+router = with_context_optimizer(
+    Router(preload=True),
+    token_budget=384,
+    keep_last_turns=4,
+)
+
+result = router.predict(state, questions)
+print(result["context_optimization"])
+```
+
+The wrapper:
+
+1. routes using the original state;
+2. loads the selected Laya checkpoint;
+3. reuses that checkpoint's tokenizer for context-token accounting;
+4. optimizes the state;
+5. calls the normal `system_one` path;
+6. attaches context-reduction metrics to the result.
+
+For dictionary states, selected values are reconstructed from the original
+objects rather than parsed back from optimizer text. For conversation lists,
+the most recent turns can be marked required.
