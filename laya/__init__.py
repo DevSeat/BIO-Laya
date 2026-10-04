@@ -10,6 +10,7 @@ from .common import (
     render_options,
     td_lambda_targets,
 )
+from .devseat_context import with_context_optimizer
 from .email import clean_email_body, email_state
 from .lang import analyse as detect_language
 from .lang import detect_script, is_english
@@ -37,6 +38,7 @@ __all__ = [
     "detect_language",
     "detect_script",
     "is_english",
+    "with_context_optimizer",
     "clean_email_body",
     "email_questions",
     "email_state",
